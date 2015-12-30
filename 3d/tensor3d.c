@@ -1,4 +1,4 @@
-#include "basic3d.h"
+#include "tensor3d.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -63,7 +63,7 @@ scalar* make_bias(scalar mat[16]){
 	return mat;
 }
 
-static scalar* mult_mat4x4(scalar A[16],scalar B[16],scalar C[16]){
+scalar* mult_mat4x4(scalar A[16],scalar B[16],scalar C[16]){
 	unsigned int id,nrow,ncol;
 	C=C?C:ALLOC(16);
 	for(id=0;id<16;id++){ 
