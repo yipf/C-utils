@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "camera3d.h"
 #include <GL/glew.h>
 #include <math.h>
 #include <stdlib.h>
@@ -7,21 +7,20 @@
 /* functions for camera */
 camera_t create_camera(scalar fov,scalar near,scalar far,scalar wh) { 
 	camera_t cam;
-	scalar *mat;
 	cam=ALLOC(CAMERA_FULL_SIZE);	
-	make_translate(cam,0.0,0.0,1.0);	/* initiate the postion and orient */
+	make_translate(cam,0.0,0.0,10.0);	/* initiate the postion and orient */
 	make_projection(cam+CAMERA_PROJ,fov,near,far,wh);	/* initiate the proj matrix */
-	invert_mat4x4(mat,cam+CAMERA_VIEW);/* initiate the view matrix */
+	invert_mat4x4(cam,cam+CAMERA_VIEW);/* initiate the view matrix */
 	make_bias(cam+CAMERA_BIAS);/* intiate the bias matrix */
 	return cam;
 }
 
-camera_t set_camera(camera_t cam,  scalar pos[3],scalar dir[3], scalar up[3]){
+camera_t set_camera(camera_t cam,  scalar from[3],scalar to[3], scalar up[3]){
 	scalar *X,*Y,*Z;
 	X=cam+CAMERA_X; 	Y=cam+CAMERA_Y; 	Z=cam+CAMERA_Z;
-	if(pos){ COPY(pos,cam+CAMERA_T,3);	}
-	if(dir || up ){
-		if(dir) {OP2(Z,=,-dir);}
+	if(from||to || up ){
+		if(from){ COPY(from,cam+CAMERA_T,3);	COPY(from,Z,3); 	normalize(Z);}
+		if(to) {OP2(Z,-=,to);}
 		if(up) {COPY(up,Y,3);}
 		cross(Y,Z,X); 	cross(Z,X,Y);
 		normalize(X); 	normalize(Y);	normalize(Z);
@@ -40,12 +39,12 @@ void apply_camera(camera_t cam){
 	glLoadIdentity();
 }
 
-camera_t move_camera(camera_t cam,scalar right,scalar up,scalar front){
+camera_t move_camera(camera_t cam,scalar right,scalar up,scalar back){
 	scalar *X,*Y,*Z,*T;
 	X=cam+CAMERA_X; 	Y=cam+CAMERA_Y; 	Z=cam+CAMERA_Z;	T=cam+CAMERA_T;
 	if(right){OP2(T,+=,right*X);}
 	if(up){OP2(T,+=,up*Y);}
-	if(front){OP2(T,-=,front*Z);}
+	if(back){OP2(T,+=,back*Z);}
 	invert_mat4x4(cam,cam+CAMERA_VIEW); /* update the view matrix */
 	return cam;
 }
@@ -67,10 +66,22 @@ scalar* xy2ray(camera_t cam,scalar x,scalar y,scalar ray[6]){
 	return ray;
 }
 
+static scalar temp[3];
+static scalar Y_AXIS[3]={0,1,0};
+static scalar Z_AXIS[3]={0,0,1};
+
 camera_t redirect_camera(camera_t cam,scalar x, scalar y){
-	scalar dir[3];
-	xy2dir(cam,x,y,dir);
-	set_camera(cam,0,dir,0);
+	scalar *X,*Y,*Z,*proj;
+	X=cam+CAMERA_X; 	Y=cam+CAMERA_Y;  	Z=cam+CAMERA_Z;  	proj=cam+CAMERA_PROJ; 
+	x/=proj[0]; y/=proj[5];
+	OP3(temp,=,x*X,+,y*Y);
+	OP3(temp,=,temp,-,Z);
+	if( temp[0]==0.0 && temp[2]==0.0 ) { return cam; }
+	cross(temp,Y_AXIS,X);
+	OP2(Z,=,-temp)
+	cross(Z,X,Y);
+	normalize(X); 	normalize(Y);	normalize(Z);
+	invert_mat4x4(cam,cam+CAMERA_VIEW); /* update the view matrix */
 	return cam;
 }
 
@@ -80,3 +91,5 @@ camera_t scale_camera(camera_t cam,scalar sx,scalar sy){
 	proj[0]*=sx; 	proj[5]*=sy;
 	return cam;
 }
+
+

@@ -7,6 +7,10 @@
  * 	2. All matrix are column-dominated
  */
 
+/* MACROS for debug */
+
+#define MSG(var,format) printf("\n%s:%d:\t%s\t:: ",__FILE__,__LINE__,#var);printf(format,var);
+#define EXCEPTION(condition,value,msg) if(condition){printf("\n%s:%d::\t%s",__FILE__,__LINE__,msg); return value;}
 
 /* types */
 

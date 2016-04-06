@@ -63,13 +63,33 @@ scalar* make_bias(scalar mat[16]){
 	return mat;
 }
 
+scalar* make_point_to(scalar mat[16],scalar x,scalar y,scalar z,scalar sx,scalar sy){
+	scalar* X,*Y,*Z;
+	mat=mat?mat:ALLOC(16);
+	X=mat; 	Y=mat+4; 	Z=mat+8;
+	Z[0]=x;	Z[1]=y;	Z[2]=z;	
+	Y[2]=0.0;
+	if(x==0){Y[0]=1.0;}else{Y[1]=1.0;}
+	cross(Y,Z,X); 	cross(Z,X,Y);
+	normalize(X); 	normalize(Y); 	normalize(Z); 	
+	X[0]*=sx; 	X[1]*=sx; 	X[2]*=sx;
+	Y[0]*=sy; 	Y[1]*=sy; 	Y[2]*=sy;
+	sx=sqrt(x*x+y*y+z*z)/2.0;
+	Z[0]*=sx; Z[1]*=sx; Z[2]*=sx;
+	mat[12]=x/2.0;	mat[13]=y/2.0;	mat[14]=z/2.0;	mat[15]=1.0;
+	return mat;
+}
+
+static scalar R[16];
+
 scalar* mult_mat4x4(scalar A[16],scalar B[16],scalar C[16]){
-	unsigned int id,nrow,ncol;
-	C=C?C:ALLOC(16);
+	uint id,nrow,ncol;
 	for(id=0;id<16;id++){ 
 		nrow=id&0x3; 	ncol=id&0xC; 
-		C[id]=A[nrow]*B[ncol]+A[nrow+4]*B[ncol+1]+A[nrow+8]*B[ncol+2]+A[nrow+12]*B[ncol+3];	 	/* C[i][j]=A:row(i) . B:col(j), where nrow=i, ncol=j */
+		R[id]=A[nrow]*B[ncol]+A[nrow+4]*B[ncol+1]+A[nrow+8]*B[ncol+2]+A[nrow+12]*B[ncol+3];	 	/* C[i][j]=A:row(i) . B:col(j), where nrow=i, ncol=j */
 	}
+	C=C?C:ALLOC(16);
+	memcpy(C,R,16*sizeof(scalar));
 	return C;
 }
 
@@ -77,9 +97,9 @@ scalar* invert_mat4x4(scalar mat[16],scalar inv[16]){
 	scalar *X,*Y,*Z,*T;
 	X=mat; 	Y=mat+4;  	Z=mat+8;  	T=mat+12; 
 	/* transpose the rotation part */
-	inv[0]=X[0];	inv[1]=Y[4];	inv[2]	=Z[8];
-	inv[4]=X[1];	inv[5]=Y[5];	inv[6]	=Z[9];
-	inv[8]=X[2];	inv[9]=Y[6];	inv[10]	=Z[10];
+	inv[0]=X[0];	inv[1]=Y[0];	inv[2]	=Z[0];
+	inv[4]=X[1];	inv[5]=Y[1];	inv[6]	=Z[1];
+	inv[8]=X[2];	inv[9]=Y[2];	inv[10]	=Z[2];
 	/* compute the position part */
 	inv[12]=-dot(T,X);	inv[13]=-dot(T,Y);	inv[14]=-dot(T,Z);	inv[15]=1.0;	
 	return inv;

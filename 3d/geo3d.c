@@ -16,3 +16,5 @@ scalar* diff3d(scalar* curve,scalar* T,uint n,uint closed,uint csize,uint tsize)
 	}
 	return T;
 }
+
+scalar* create_geo3d(uint size){ return ALLOC(size);}

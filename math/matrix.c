@@ -8,12 +8,18 @@
 /* Lapack functions */
 #include <lapacke.h>
 
+#include "../HELPER.h"
+
 data_t* data_alloc(index_t n){
 	return calloc(sizeof(data_t),n);
 }
 
 void data_destroy(data_t* data){
 	if(data){free(data);}
+}
+
+data_t* data_offset(data_t * data,index_t n){
+	return data+n;
 }
 
 data_t* data_copy(data_t* src, data_t* dst, index_t n,index_t s_step,index_t d_step){
@@ -76,12 +82,14 @@ matrix_t matrix_transpose(matrix_t M,matrix_t T,index_t nrow,index_t ncol){
 }
 
 matrix_t* svd(matrix_t A,int nrow, int ncol){ 
-	matrix_t U,S,VT,superb,*R;
+	matrix_t M,U,S,VT,superb,*R;
+	M=data_copy(A,0,nrow*ncol,1,1);
 	U=create_matrix(nrow,nrow); 	S=create_vector(ncol); 	VT=create_matrix(ncol,ncol); 	superb=create_vector(((nrow>ncol)?ncol:nrow)-1);
 	/* lapack_int LAPACKE_dgesvd( int matrix_layout, char jobu, char jobvt,lapack_int m, lapack_int n, double* a, lapack_int lda, double* s, double* u, lapack_int ldu, double* vt, lapack_int ldvt, double* superb )   */
-	EXCEPTION(LAPACKE_dgesvd( LAPACK_COL_MAJOR, 'A','A',nrow,ncol,A,nrow,S,U,nrow,VT,ncol,superb),0,"SVD processing faild to complete!\n");
-	R=calloc(sizeof(matrix_t),4);
-	R[0]=U; 	R[1]=S; 	R[2]=VT; 	R[3]=superb;
+	EXCEPTION(LAPACKE_dgesvd( LAPACK_COL_MAJOR, 'A','A',nrow,ncol,M,nrow,S,U,nrow,VT,ncol,superb),0,"SVD processing faild to complete!\n");
+	R=calloc(sizeof(matrix_t),3);
+	R[0]=U; 	R[1]=S; 	R[2]=VT; 	
+	free(M); 	free(superb);
 	return R;
 }
 
