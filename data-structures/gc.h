@@ -21,8 +21,14 @@ static unsigned int HASH;
 unsigned int ptr2index(gc_ptr_t ptr, unsigned int hash);
 static gc_node_t create_gc_node(gc_ptr_t ptr, gc_node_t next);
 
-void gc_init(unsigned int hash);
+static gc_ptr_t gc_register(gc_ptr_t ptr);
+
+gc_ptr_t gc_malloc(unsigned int size);
+gc_ptr_t gc_calloc(unsigned int n,unsigned int size);
+
 gc_ptr_t gc_ref(gc_ptr_t ptr);
+
+void gc_init(unsigned int hash);
 
 static gc_node_t gc_(gc_node_t head);
 void gc(void);
@@ -55,21 +61,26 @@ void gc_init(unsigned int hash){
 	GC_TABLE=calloc(HASH,sizeof(gc_node_));
 }
 
-gc_ptr_t gc_ref(gc_ptr_t ptr){
-	gc_node_t gnode,head;
+static gc_ptr_t gc_register(gc_ptr_t ptr){
 	unsigned int index;
 	index=ptr2index(ptr,HASH);
-	head=GC_TABLE[index];
-	if(!head){ 
-		GC_TABLE[index]=create_gc_node(ptr,0);
-	}else{
-		while(head&&(head->ptr!=ptr)){head=head->next;}
-		if(head){
-			head->ref++;
-		}else{
-			GC_TABLE[index]=create_gc_node(ptr,GC_TABLE[index]);
-		}
-	}
+	GC_TABLE[index]=create_gc_node(ptr,GC_TABLE[index]);
+	return ptr;
+}
+
+gc_ptr_t gc_malloc(unsigned int size){
+	return gc_register(malloc(size));
+}
+
+gc_ptr_t gc_calloc(unsigned int n,unsigned int size){
+	return gc_register(calloc(n,size));
+}
+
+gc_ptr_t gc_ref(gc_ptr_t ptr){
+	gc_node_t head;
+	head=GC_TABLE[ptr2index(ptr,HASH)];
+	while(head&&(head->ptr!=ptr)){head=head->next;}
+	if(head){			head->ref++;}
 	return ptr;
 }
 

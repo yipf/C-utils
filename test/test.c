@@ -81,7 +81,7 @@
 #include "../data-structures/gc.h"
 
 void* f(unsigned int n){
-	return gc_ref(malloc(n));
+	return gc_malloc(n);
 }
 
 int main(void){

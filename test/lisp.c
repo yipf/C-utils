@@ -98,10 +98,9 @@ S_node_t eval(S_node_t node){
 					break;
 				case LAMBDA:
 					while(res=res->next){res=eval(res);}
-				case MACRO:
 					res=(node->value).child;
+				case MACRO:
 					res=apply(res,res->next);
-					/* apply function*/
 					break;
 				default: 
 					while(res=res->next){res=eval(res);}
@@ -129,9 +128,8 @@ int main(void){
 	ENV=init_env(ENV);
 	node=stream2S_node(stdin);
 	S_node2stream(node,stdout);
-	printf("\n=\n");
 	eval(node);
-	S_node2stream(node,stdout);
+	printf("\n=\n");S_node2stream(node,stdout);
 	printf("\n");
 	return 0;
 }
