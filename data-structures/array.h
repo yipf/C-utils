@@ -1,7 +1,11 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-typedef int array_value_t;
+#ifndef ARRAY_VALUE_T
+#define ARRAY_VALUE_T int
+#endif
+
+typedef ARRAY_VALUE_T array_value_t;
 
 typedef unsigned int array_size_t;
 typedef struct array_{

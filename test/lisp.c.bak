@@ -1,0 +1,78 @@
+#include "../data-structures/S-exp.h"
+
+#define HASH_STACK_VALUE_T S_node_t
+#include "../data-structures/hash-stack.h"
+
+typedef S_node_t (*func_t)(S_node_t args);
+
+S_node_t add(S_node_t args){
+	S_node_t node;
+	double number=0.0;
+	node=make_S_node(NUMBER);
+	while(args){
+		if(args->type==NUMBER);
+		number+=(args->value).number;
+		args=args->next;
+	}
+	(node->value).number=number;
+	return node;
+}
+
+hash_stack_t ENV=0;
+
+enum{FUNCTION=10,MACRO,LAMBDA};
+
+S_node_t make_func_node(func_t function){
+	S_node_t fnode=make_S_node(FUNCTION);
+	(fnode->value).ptr=function;
+	return fnode;
+}
+
+S_node_t eval(S_node_t node){
+	S_node_t res=0;
+	switch(node->type){
+		case SYMBOL:
+			res=hash_stack_get(ENV,(node->value).symbol);
+			break;
+		case LIST:
+			/* eval every elements */
+			res=(node->value).child;
+			if(!res) break; /* if node is an empty list then do nothing */
+
+			if(res->type==QUOTE) { res=res->next; 	break;}
+			while(res){	res=eval(res); res=res->next;	}
+			/* process */
+			res=(node->value).child;
+			switch(res->type){
+				case FUNCTION:
+					res=((func_t)(res->value).ptr)(res->next);
+					break;
+				default: 
+					res=0; /* do nothing, set res to 0 */
+					break;
+			}
+			break;
+		default: 
+			break;
+	}
+	return res?copy_S_node(res,node,0):node;
+}
+
+hash_stack_t init_env(hash_stack_t env){
+	hash_stack_push(env,"+",make_func_node(add));
+	hash_stack_push(env,"eval",make_func_node(eval));
+	return env;
+}
+
+int main(void){
+	S_node_t node;
+	ENV=hash_stack_create(101);
+	ENV=init_env(ENV);
+	node=stream2S_node(stdin);
+	S_node2stream(node,stdout);
+	printf("\n=\n");
+	eval(node);
+	S_node2stream(node,stdout);
+	printf("\n");
+	return 0;
+}

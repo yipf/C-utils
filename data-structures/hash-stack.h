@@ -3,8 +3,16 @@
 
 /* treat the element of hash table as a stack,which can be used to implement local variables or up-values*/
 
-typedef char* hash_stack_value_t;
-typedef char* hash_stack_key_t;
+#ifndef HASH_STACK_VALUE_T
+#define HASH_STACK_VALUE_T char*
+#endif
+
+#ifndef HASH_STACK_KEY_T
+#define HASH_STACK_KEY_T char*
+#endif
+
+typedef HASH_STACK_VALUE_T hash_stack_value_t;
+typedef HASH_STACK_KEY_T hash_stack_key_t;
 
 struct hash_stack_value_node_;
 
@@ -48,7 +56,7 @@ hash_stack_t hash_stack_create(unsigned int hash){
 }
 
 unsigned int hash_stack_key2index(hash_stack_key_t key,unsigned int hash){
-	unsigned int index,n;
+	unsigned int index=0,n;
 	while(n=*(key++)){
 		index+=n; 
 		while(index>=hash){ index-=hash; }
@@ -121,7 +129,7 @@ hash_stack_t hash_stack_pop(hash_stack_t ht,hash_stack_key_t key){
 hash_stack_value_t hash_stack_get(hash_stack_t ht,hash_stack_key_t key){
 	hash_stack_node_t head;
 	head=ht->stack[hash_stack_key2index(key,ht->hash)];
-	while(head&&strcmp(key,head->key)){ head=head->next;}
+	while(head&&strcmp(key,head->key)){ head=head->next; }
 	return head?((head->vnode)->value):0;
 }
 
@@ -133,7 +141,7 @@ hash_stack_t hash_stack2stream(hash_stack_t ht,FILE* stream,char* value_fmt){
 		head=stack[index];
 		while(head){
 			count++;
-			fprintf(stream,"\n%d[%s]:\t",count,head->key);fprintf(stream,value_fmt,(head->vnode)->value);
+			fprintf(stream,"\n%d:[%s]:\t",count,head->key);fprintf(stream,value_fmt,(head->vnode)->value);
 			head=head->next;
 		}
 	}

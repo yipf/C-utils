@@ -1,7 +1,11 @@
 #ifndef HASH_TABLE_H
 #define HASH_TABLE_H
 
-typedef char* hash_table_value_t;
+#ifndef HASH_TABLE_VALUE_T
+#define HASH_TABLE_VALUE_T char*
+#endif
+
+typedef HASH_TABLE_VALUE_T hash_table_value_t;
 typedef char* hash_table_key_t;
 
 struct hash_table_node_;
@@ -37,7 +41,7 @@ hash_table_t hash_table_create(unsigned int hash){
 }
 
 unsigned int hash_table_key2index(hash_table_key_t key,unsigned int hash){
-	unsigned int index,n;
+	unsigned int index=0,n;
 	while(n=*(key++)){
 		index+=n; 
 		while(index>=hash){ index-=hash; }

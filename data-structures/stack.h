@@ -1,7 +1,11 @@
 #ifndef STACK_H
 #define STACK_H
 
-typedef int stack_value_t;
+#ifndef STACK_VALUE_T
+#define STACK_VALUE_T int
+#endif
+
+typedef STACK_VALUE_T stack_value_t;
 
 struct stack_;
 typedef struct stack_{
